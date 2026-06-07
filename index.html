@@ -9,16 +9,20 @@
       color-scheme: light;
       --bg: #f4f7fb;
       --blue: #4478c7;
+      --blue-2: #245aa8;
       --blue-dark: #193567;
       --green: #c7e4b7;
+      --green-2: #9dd88b;
       --green-dark: #23451d;
       --red: #f00000;
+      --red-2: #c80000;
       --gray: #d9dee7;
       --text: #13213a;
       --muted: #5f6e83;
       --line: #1f2d4b;
       --white: #ffffff;
-      --shadow: 0 12px 24px rgba(19, 33, 58, .12);
+      --shadow: 0 18px 40px rgba(19, 33, 58, .14);
+      --soft-shadow: 0 10px 24px rgba(19, 33, 58, .10);
     }
 
     * { box-sizing: border-box; }
@@ -27,7 +31,9 @@
       margin: 0;
       min-height: 100vh;
       font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at top left, rgba(68, 120, 199, .16), transparent 34%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 48%, #eef3f9 100%);
       color: var(--text);
     }
 
@@ -43,12 +49,12 @@
       margin: 0 0 18px;
       text-align: center;
       color: var(--white);
-      background: var(--blue);
-      border: 2px solid var(--line);
-      border-radius: 16px;
-      padding: 18px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      border: 1px solid rgba(31, 45, 75, .55);
+      border-radius: 22px;
+      padding: 20px;
       font-size: 20px;
-      font-weight: 500;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0;
       box-shadow: var(--shadow);
@@ -63,19 +69,21 @@
     }
 
     .btn {
-      border: 2px solid var(--line);
-      border-radius: 8px;
-      padding: 10px 14px;
+      border: 1px solid rgba(31, 45, 75, .25);
+      border-radius: 999px;
+      padding: 11px 16px;
       font-weight: 700;
       cursor: pointer;
-      background: var(--blue);
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
       color: var(--white);
-      transition: transform .15s ease, filter .15s ease;
+      box-shadow: 0 10px 22px rgba(36, 90, 168, .20);
+      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
     }
 
     .btn:hover {
       transform: translateY(-1px);
       filter: brightness(1.05);
+      box-shadow: 0 14px 28px rgba(36, 90, 168, .24);
     }
 
     .btn:disabled {
@@ -91,19 +99,28 @@
     }
 
     .btn.red {
-      background: var(--red);
+      background: linear-gradient(135deg, #ff1f1f, var(--red-2));
       color: #fff;
-      border-color: #b00000;
+      border-color: rgba(176, 0, 0, .35);
+      box-shadow: 0 10px 22px rgba(240, 0, 0, .20);
     }
 
     .btn.green {
-      background: var(--green);
+      background: linear-gradient(135deg, #dcf3d3, var(--green-2));
       color: #0d2109;
+      box-shadow: 0 10px 22px rgba(80, 150, 68, .18);
     }
 
     .btn.gray {
-      background: var(--gray);
+      background: linear-gradient(135deg, #f1f4f8, var(--gray));
       color: #101820;
+      box-shadow: 0 10px 22px rgba(31, 45, 75, .10);
+    }
+
+    .btn.is-current {
+      outline: 3px solid rgba(68, 120, 199, .24);
+      border-color: rgba(31, 45, 75, .55);
+      filter: saturate(1.08);
     }
 
     .settings {
@@ -158,11 +175,11 @@
 
     .summary-card {
       background: #fff;
-      border: 2px solid #d7deea;
-      border-radius: 8px;
+      border: 1px solid #d7deea;
+      border-radius: 14px;
       padding: 12px;
       text-align: center;
-      box-shadow: 0 8px 16px rgba(19, 33, 58, .08);
+      box-shadow: var(--soft-shadow);
     }
 
     .summary-card span {
@@ -230,8 +247,8 @@
       align-items: start;
       padding: 16px;
       background: #fff;
-      border: 2px solid #d7deea;
-      border-radius: 12px;
+      border: 1px solid #d7deea;
+      border-radius: 18px;
       box-shadow: var(--shadow);
     }
 
@@ -387,6 +404,43 @@
       color: #fff;
     }
 
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 24px 0 0;
+    }
+
+    .pagination[hidden] {
+      display: none;
+    }
+
+    .page-btn {
+      min-width: 42px;
+      min-height: 40px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: var(--blue-dark);
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(19, 33, 58, .08);
+    }
+
+    .page-btn.is-active {
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .page-sep {
+      color: var(--muted);
+      font-weight: 900;
+    }
+
     .empty {
       padding: 30px;
       text-align: center;
@@ -446,7 +500,6 @@
     <div class="top-actions">
       <button class="btn small" id="addDummy">Nueva dummy order</button>
       <button class="btn small" id="exportCsv">Exportar CSV</button>
-      <button class="btn small red" id="clearData">Limpiar registros</button>
     </div>
 
     <section class="settings" aria-label="Configuracion de comisiones">
@@ -489,12 +542,14 @@
 
     <section class="orders" id="ordersList" aria-label="Ordenes"></section>
     <div class="empty" id="emptyState" hidden>No hay ordenes con esos filtros.</div>
+    <nav class="pagination" id="pagination" aria-label="Paginacion de ordenes" hidden></nav>
   </main>
 
   <script>
     const STORAGE_KEY = "ratatouille_commission_register_v2";
     const COMMISSION_KEY = "ratatouille_commission_rates_v2";
     const INBOX_KEY = "ratatouille_commission_inbox_v1";
+    const PAGE_SIZE = 10;
 
     const defaultCommissions = {
       atv: 2.50,
@@ -518,6 +573,7 @@
 
     let commissions = loadCommissions();
     let orders = loadOrders();
+    let currentPage = 1;
 
     if (!orders.length) {
       orders = [dummyOrder];
@@ -538,7 +594,8 @@
       realCount: document.getElementById("realCount"),
       search: document.getElementById("search"),
       statusFilter: document.getElementById("statusFilter"),
-      tourFilter: document.getElementById("tourFilter")
+      tourFilter: document.getElementById("tourFilter"),
+      pagination: document.getElementById("pagination")
     };
 
     function loadCommissions() {
@@ -567,7 +624,21 @@
 
     function isAusoles(tour) {
       const value = String(tour || "").toLowerCase();
-      return value.includes("ausoles") || value.includes("extrema");
+      return value.includes("ausoles") || value.includes("extrema") || value.includes("extreme");
+    }
+
+    function payloadText(value) {
+      if (!value) return "";
+      if (Array.isArray(value)) return value.map(payloadText).filter(Boolean).join("\n");
+      if (typeof value === "object") return JSON.stringify(value);
+      return String(value);
+    }
+
+    function normalizeTourName(tour, text, tourId = "") {
+      const value = `${tourId || ""} ${tour || ""} ${text || ""}`.toLowerCase();
+      if (isAusoles(value)) return "Ruta Extrema (Ausoles Tour)";
+      if (value.includes("laguna") || value.includes("verde")) return "Laguna Verde";
+      return tour || "Laguna Verde";
     }
 
     function calculateCommission(order) {
@@ -651,16 +722,23 @@
 
       try {
         payload = JSON.parse(text);
-        text = [payload.message, payload.tour, payload.orderNumber, payload.customerName].filter(Boolean).join("\n");
+        text = [
+          payload.message,
+          payload.vehicleOrderDetails,
+          payload.orderSummaryText,
+          payload.tour,
+          payload.orderNumber,
+          payload.customerName
+        ].map(payloadText).filter(Boolean).join("\n");
       } catch {
         payload = {};
       }
 
       const orderNumber = payload.orderNumber || (text.match(/RXT[-A-Z0-9]+/i) || [""])[0] || `RXT-IMPORT-${Date.now()}`;
-      const tour = payload.tour || (isAusoles(text) ? "Ruta Extrema (Ausoles Tour)" : "Laguna Verde");
+      const tour = normalizeTourName(payload.tour, text, payload.tourId);
       const customerName = payload.customerName || payload.name || ((text.match(/Responsable:\s*(.+)/i) || [])[1] || "Orden importada").trim();
-      const atvUnits = Number(payload.atvUnits || 0) || sumUnits(text, /Cuatrimoto|Cuatri/gi);
-      const buggyUnits = Number(payload.buggyUnits || 0) || sumUnits(text, /Buggy/gi);
+      const atvUnits = Number(payload.atvUnits || payload.atv || 0) || sumUnits(text, /Cuatrimoto|Cuatri|ATV/gi);
+      const buggyUnits = Number(payload.buggyUnits || payload.buggy || payload.buggies || 0) || sumUnits(text, /Buggy|Buggies/gi);
 
       const order = {
         id: makeId(),
@@ -699,9 +777,17 @@
     function upsertOrder(order) {
       const existingIndex = orders.findIndex((item) => item.orderNumber === order.orderNumber);
       if (existingIndex >= 0) {
-        orders[existingIndex] = { ...orders[existingIndex], ...order, id: orders[existingIndex].id };
+        orders[existingIndex] = {
+          ...orders[existingIndex],
+          ...order,
+          id: orders[existingIndex].id,
+          status: orders[existingIndex].status,
+          closedAs: orders[existingIndex].closedAs,
+          disposedAt: orders[existingIndex].disposedAt
+        };
       } else {
         orders.unshift(order);
+        currentPage = 1;
       }
       saveOrders();
       render();
@@ -715,21 +801,30 @@
         inbox = [];
       }
 
-      if (!Array.isArray(inbox) || !inbox.length) return;
+      if (!Array.isArray(inbox) || !inbox.length) return false;
 
       inbox.forEach((payload) => {
         const raw = typeof payload === "string" ? payload : JSON.stringify(payload);
         const order = parseImportedOrder(raw);
         const existingIndex = orders.findIndex((item) => item.orderNumber === order.orderNumber);
         if (existingIndex >= 0) {
-          orders[existingIndex] = { ...orders[existingIndex], ...order, id: orders[existingIndex].id };
+          orders[existingIndex] = {
+            ...orders[existingIndex],
+            ...order,
+            id: orders[existingIndex].id,
+            status: orders[existingIndex].status,
+            closedAs: orders[existingIndex].closedAs,
+            disposedAt: orders[existingIndex].disposedAt
+          };
         } else {
           orders.unshift(order);
+          currentPage = 1;
         }
       });
 
       localStorage.removeItem(INBOX_KEY);
       saveOrders();
+      return true;
     }
 
     function setStatus(id, status) {
@@ -760,16 +855,13 @@
       if (order.status === "disposed") {
         return `<div class="empty">Orden disposicionada. Sin acciones disponibles.</div>`;
       }
-      if (order.status === "pending") {
-        return `
-          <button class="btn gray" data-action="dummy" data-id="${order.id}">Dummy orden</button>
-          <button class="btn green" data-action="received" data-id="${order.id}">Collectada o cobrada</button>
-          <button class="btn red" data-action="disposed" data-id="${order.id}" disabled>Disposicionar</button>
-        `;
-      }
+      const dummyActive = order.status === "dummy" ? " is-current" : "";
+      const receivedActive = order.status === "received" ? " is-current" : "";
+      const disposeDisabled = order.status === "pending" ? " disabled" : "";
       return `
-        <button class="btn gray" disabled>${statusLabel(order.status)}</button>
-        <button class="btn red" data-action="disposed" data-id="${order.id}">Disposicionar</button>
+        <button class="btn gray${dummyActive}" data-action="dummy" data-id="${order.id}">Dummy orden</button>
+        <button class="btn green${receivedActive}" data-action="received" data-id="${order.id}">Collectada o cobrada</button>
+        <button class="btn red" data-action="disposed" data-id="${order.id}"${disposeDisabled}>Disposicionar</button>
       `;
     }
 
@@ -782,7 +874,23 @@
         return (!term || searchable.includes(term)) &&
           (status === "all" || order.status === status) &&
           (tour === "all" || order.tour === tour);
-      });
+      }).sort((a, b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0));
+    }
+
+    function renderPagination(total) {
+      const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      if (!els.pagination) return;
+      if (total <= PAGE_SIZE) {
+        els.pagination.hidden = true;
+        els.pagination.innerHTML = "";
+        return;
+      }
+      els.pagination.hidden = false;
+      els.pagination.innerHTML = Array.from({ length: pageCount }, (_, index) => {
+        const page = index + 1;
+        const sep = page < pageCount ? `<span class="page-sep">&gt;&gt;</span>` : "";
+        return `<button class="page-btn ${page === currentPage ? "is-active" : ""}" data-page="${page}" type="button">${page}</button>${sep}`;
+      }).join("");
     }
 
     function renderSettings() {
@@ -809,8 +917,12 @@
       renderSettings();
       renderStats();
       const list = filteredOrders();
+      const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+      if (currentPage > pageCount) currentPage = pageCount;
+      const pageOrders = list.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
       els.emptyState.hidden = list.length > 0;
-      els.ordersList.innerHTML = list.map((order) => {
+      renderPagination(list.length);
+      els.ordersList.innerHTML = pageOrders.map((order) => {
         const vehicleHtml = vehicleLines(order).map((line) => `<p>${escapeHtml(line)}</p>`).join("");
         const commissionHtml = commissionLines(order).map((row) => `
           <div class="commission-line">
@@ -888,23 +1000,52 @@
 
     document.getElementById("exportCsv").addEventListener("click", exportCsv);
 
-    document.getElementById("clearData").addEventListener("click", () => {
-      if (!confirm("Quieres borrar todos los registros guardados en esta computadora?")) return;
-      orders = [];
-      saveOrders();
-      render();
-    });
-
     els.ordersList.addEventListener("click", (event) => {
       const button = event.target.closest("button[data-action]");
       if (!button) return;
       setStatus(button.dataset.id, button.dataset.action);
     });
 
-    [els.search, els.statusFilter, els.tourFilter].forEach((control) => {
-      control.addEventListener("input", render);
-      control.addEventListener("change", render);
+    els.pagination.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-page]");
+      if (!button) return;
+      currentPage = Number(button.dataset.page || 1);
+      render();
+      els.ordersList.scrollIntoView({ behavior: "smooth", block: "start" });
     });
+
+    [els.search, els.statusFilter, els.tourFilter].forEach((control) => {
+      control.addEventListener("input", () => {
+        currentPage = 1;
+        render();
+      });
+      control.addEventListener("change", () => {
+        currentPage = 1;
+        render();
+      });
+    });
+
+    function consumeAndRenderIncoming() {
+      if (consumeIncomingOrders()) render();
+    }
+
+    window.addEventListener("storage", (event) => {
+      if (event.key === INBOX_KEY) consumeAndRenderIncoming();
+    });
+
+    window.addEventListener("focus", consumeAndRenderIncoming);
+    setInterval(consumeAndRenderIncoming, 2500);
+
+    try {
+      const commissionChannel = new BroadcastChannel("ratatouille_commissions");
+      commissionChannel.addEventListener("message", (event) => {
+        if (!event.data || event.data.type !== "new-order") return;
+        const raw = JSON.stringify(event.data.payload || {});
+        upsertOrder(parseImportedOrder(raw));
+      });
+    } catch {
+      /* BroadcastChannel is optional; localStorage remains the fallback. */
+    }
 
     recalculateOrders();
     consumeIncomingOrders();
