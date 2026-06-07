@@ -1029,8 +1029,17 @@
       if (consumeIncomingOrders()) render();
     }
 
+    function syncStoredOrders() {
+      const storedOrders = loadOrders();
+      if (!Array.isArray(storedOrders)) return;
+      orders = storedOrders;
+      recalculateOrders();
+      render();
+    }
+
     window.addEventListener("storage", (event) => {
       if (event.key === INBOX_KEY) consumeAndRenderIncoming();
+      if (event.key === STORAGE_KEY) syncStoredOrders();
     });
 
     window.addEventListener("focus", consumeAndRenderIncoming);
@@ -1040,6 +1049,10 @@
       const commissionChannel = new BroadcastChannel("ratatouille_commissions");
       commissionChannel.addEventListener("message", (event) => {
         if (!event.data || event.data.type !== "new-order") return;
+        if (event.data.record) {
+          upsertOrder(event.data.record);
+          return;
+        }
         const raw = JSON.stringify(event.data.payload || {});
         upsertOrder(parseImportedOrder(raw));
       });
