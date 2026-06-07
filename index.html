@@ -78,6 +78,13 @@
       filter: brightness(1.05);
     }
 
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+      transform: none;
+      filter: none;
+    }
+
     .btn.small {
       padding: 8px 12px;
       font-size: 13px;
@@ -228,6 +235,21 @@
       box-shadow: var(--shadow);
     }
 
+    .order-card.is-disposed {
+      background: #e6ebf2;
+      border-color: #b9c2d0;
+      box-shadow: none;
+      filter: grayscale(.18);
+    }
+
+    .order-card.is-disposed .order-number,
+    .order-card.is-disposed .order-info,
+    .order-card.is-disposed .commission-line {
+      background: #cfd6e2;
+      color: #526070;
+      border-color: #a5afbf;
+    }
+
     .order-left {
       min-width: 0;
     }
@@ -283,6 +305,12 @@
       background: var(--gray);
       color: #111;
       border-color: #68717f;
+    }
+
+    .status-disposed {
+      background: #8791a0;
+      color: #fff;
+      border-color: #626b77;
     }
 
     .order-info {
@@ -450,6 +478,7 @@
         <option value="pending">Pendiente</option>
         <option value="received">Recibido</option>
         <option value="dummy">Test / Dummy</option>
+        <option value="disposed">Disposicionada</option>
       </select>
       <select id="tourFilter">
         <option value="all">Todos los tours</option>
@@ -482,7 +511,7 @@
       atvUnits: 0,
       buggyUnits: 1,
       commission: 20,
-      status: "dummy",
+      status: "pending",
       notes: "Orden falsa para visualizar el panel.",
       createdAt: new Date().toISOString()
     };
@@ -572,13 +601,19 @@
       render();
     }
 
-    function statusLabel(status) {
+    function statusLabel(order) {
+      const status = typeof order === "string" ? order : order.status;
+      const closedAs = typeof order === "string" ? "" : order.closedAs;
+      if (status === "disposed") {
+        return closedAs === "dummy" ? "Disposicionada dummy" : "Disposicionada cobrada";
+      }
       if (status === "received") return "Collectada o cobrada";
-      if (status === "dummy") return "Test o disposicionada";
-      return "Pending o disposicionada";
+      if (status === "dummy") return "Dummy orden";
+      return "Pending";
     }
 
     function statusClass(status) {
+      if (status === "disposed") return "status-disposed";
       if (status === "received") return "status-received";
       if (status === "dummy") return "status-dummy";
       return "status-pending";
@@ -698,9 +733,44 @@
     }
 
     function setStatus(id, status) {
-      orders = orders.map((order) => order.id === id ? { ...order, status } : order);
+      const current = orders.find((order) => order.id === id);
+      if (!current || current.status === "disposed") return;
+      if (status === "disposed" && current.status === "pending") {
+        alert("Primero marca la orden como Dummy o Collectada antes de disposicionarla.");
+        return;
+      }
+
+      orders = orders.map((order) => {
+        if (order.id !== id) return order;
+        if (status === "disposed") {
+          return {
+            ...order,
+            status: "disposed",
+            closedAs: order.status,
+            disposedAt: new Date().toISOString()
+          };
+        }
+        return { ...order, status, closedAs: "", disposedAt: "" };
+      });
       saveOrders();
       render();
+    }
+
+    function orderActions(order) {
+      if (order.status === "disposed") {
+        return `<div class="empty">Orden disposicionada. Sin acciones disponibles.</div>`;
+      }
+      if (order.status === "pending") {
+        return `
+          <button class="btn gray" data-action="dummy" data-id="${order.id}">Dummy orden</button>
+          <button class="btn green" data-action="received" data-id="${order.id}">Collectada o cobrada</button>
+          <button class="btn red" data-action="disposed" data-id="${order.id}" disabled>Disposicionar</button>
+        `;
+      }
+      return `
+        <button class="btn gray" disabled>${statusLabel(order.status)}</button>
+        <button class="btn red" data-action="disposed" data-id="${order.id}">Disposicionar</button>
+      `;
     }
 
     function filteredOrders() {
@@ -723,13 +793,16 @@
 
     function renderStats() {
       const totalByStatus = (status) => orders
-        .filter((order) => order.status === status)
+        .filter((order) => order.status === status ||
+          (order.status === "disposed" && order.closedAs === status))
         .reduce((sum, order) => sum + Number(order.commission || 0), 0);
 
       els.pendingTotal.textContent = money.format(totalByStatus("pending"));
       els.receivedTotal.textContent = money.format(totalByStatus("received"));
       els.dummyTotal.textContent = money.format(totalByStatus("dummy"));
-      els.realCount.textContent = orders.filter((order) => order.status !== "dummy").length;
+      els.realCount.textContent = orders.filter((order) =>
+        order.status !== "dummy" && !(order.status === "disposed" && order.closedAs === "dummy")
+      ).length;
     }
 
     function render() {
@@ -747,11 +820,11 @@
         `).join("");
 
         return `
-          <article class="order-card">
+          <article class="order-card ${order.status === "disposed" ? "is-disposed" : ""}">
             <div class="order-left">
               <div class="order-topline">
                 <div class="order-number">New order : ${escapeHtml(order.orderNumber)}</div>
-                <span class="status-pill ${statusClass(order.status)}">${statusLabel(order.status)}</span>
+                <span class="status-pill ${statusClass(order.status)}">${statusLabel(order)}</span>
               </div>
               <div class="order-info">
                 <h3>Informacion de la orden</h3>
@@ -766,9 +839,7 @@
               </div>
             </div>
             <div class="order-actions">
-              <button class="btn gray" data-action="dummy" data-id="${order.id}">Dummy orden</button>
-              <button class="btn green" data-action="received" data-id="${order.id}">Collectada o cobrada</button>
-              <button class="btn red" data-action="pending" data-id="${order.id}">Disposicionar</button>
+              ${orderActions(order)}
             </div>
           </article>
         `;
@@ -789,7 +860,7 @@
         ["Orden", "Fecha", "Tour", "Cliente", "Cuatrimotos", "Buggies", "Comision", "Estado", "Notas"],
         ...orders.map((order) => [
           order.orderNumber, order.date, order.tour, order.customerName, order.atvUnits,
-          order.buggyUnits, Number(order.commission || 0).toFixed(2), statusLabel(order.status), order.notes
+          order.buggyUnits, Number(order.commission || 0).toFixed(2), statusLabel(order), order.notes
         ])
       ];
       const csv = rows.map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
