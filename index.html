@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comisiones | Ratatouille Tours</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --blue: #4478c7;
+      --blue-dark: #193567;
+      --green: #c7e4b7;
+      --green-dark: #23451d;
+      --red: #f00000;
+      --gray: #d9dee7;
+      --text: #13213a;
+      --muted: #5f6e83;
+      --line: #1f2d4b;
+      --white: #ffffff;
+      --shadow: 0 12px 24px rgba(19, 33, 58, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    .app {
+      width: min(980px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 46px;
+    }
+
+    .screen-title {
+      margin: 0 0 18px;
+      text-align: center;
+      color: var(--white);
+      background: var(--blue);
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      font-size: 20px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      box-shadow: var(--shadow);
+    }
+
+    .top-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--blue);
+      color: var(--white);
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .btn.small {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .btn.red {
+      background: var(--red);
+      color: #fff;
+      border-color: #b00000;
+    }
+
+    .btn.green {
+      background: var(--green);
+      color: #0d2109;
+    }
+
+    .btn.gray {
+      background: var(--gray);
+      color: #101820;
+    }
+
+    .settings {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .setting-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 112px;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .setting-label,
+    .setting-amount {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      background: var(--blue);
+      color: var(--white);
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .setting-label {
+      padding: 10px 16px;
+      font-size: 17px;
+      line-height: 1.25;
+    }
+
+    .setting-amount {
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .setting-amount {
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .summary-card {
+      background: #fff;
+      border: 2px solid #d7deea;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(19, 33, 58, .08);
+    }
+
+    .summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .summary-card strong {
+      display: block;
+      font-size: 24px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 2px solid #ccd6e5;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(68, 120, 199, .18);
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .filters input,
+    .filters select {
+      width: auto;
+      min-width: 190px;
+    }
+
+    .orders {
+      display: grid;
+      gap: 22px;
+    }
+
+    .order-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 230px;
+      gap: 18px;
+      align-items: start;
+      padding: 16px;
+      background: #fff;
+      border: 2px solid #d7deea;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .order-left {
+      min-width: 0;
+    }
+
+    .order-topline {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .order-number {
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--blue);
+      border: 2px solid var(--line);
+      color: #fff;
+      border-radius: 6px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .status-pill {
+      justify-self: start;
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+
+    .status-pending {
+      background: var(--red);
+      color: #fff;
+      border-color: #b00000;
+    }
+
+    .status-received {
+      background: var(--green);
+      color: var(--green-dark);
+      border-color: var(--green-dark);
+    }
+
+    .status-dummy {
+      background: var(--gray);
+      color: #111;
+      border-color: #68717f;
+    }
+
+    .order-info {
+      min-height: 146px;
+      display: grid;
+      align-content: center;
+      gap: 12px;
+      background: var(--blue);
+      border: 2px solid var(--line);
+      border-radius: 20px;
+      color: #fff;
+      text-align: center;
+      padding: 18px;
+      text-transform: uppercase;
+    }
+
+    .order-info h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .order-info p {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .commission-box {
+      margin-top: 10px;
+      display: grid;
+      gap: 9px;
+      max-width: 360px;
+    }
+
+    .commission-line {
+      min-height: 26px;
+      display: grid;
+      grid-template-columns: 1fr 90px;
+      align-items: center;
+      background: var(--blue);
+      border: 2px solid var(--line);
+      border-radius: 5px;
+      color: #fff;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      overflow: hidden;
+    }
+
+    .commission-line.total {
+      width: 260px;
+      justify-self: center;
+      grid-template-columns: 1fr;
+      margin-top: 4px;
+    }
+
+    .order-actions {
+      display: grid;
+      gap: 12px;
+      padding-top: 166px;
+    }
+
+    .order-actions .btn {
+      min-height: 58px;
+      line-height: 1.35;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: #0a1020;
+    }
+
+    .order-actions .btn.red {
+      color: #fff;
+    }
+
+    .empty {
+      padding: 30px;
+      text-align: center;
+      color: var(--muted);
+      background: #fff;
+      border: 2px dashed #ccd6e5;
+      border-radius: 12px;
+    }
+
+    @media (max-width: 820px) {
+      .setting-row,
+      .order-card,
+      .order-topline {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .order-actions {
+        padding-top: 0;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app {
+        width: min(100% - 18px, 980px);
+        padding-top: 18px;
+      }
+
+      .summary-grid,
+      .order-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .filters input,
+      .filters select {
+        width: 100%;
+      }
+
+      .commission-box {
+        max-width: none;
+      }
+
+      .commission-line.total {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1 class="screen-title">Configuracion de comisiones</h1>
+
+    <div class="top-actions">
+      <button class="btn small" id="addDummy">Nueva dummy order</button>
+      <button class="btn small" id="exportCsv">Exportar CSV</button>
+      <button class="btn small red" id="clearData">Limpiar registros</button>
+    </div>
+
+    <section class="settings" aria-label="Configuracion de comisiones">
+      <div class="setting-row">
+        <div class="setting-label">Cuatrimoto</div>
+        <button class="setting-amount" id="atvAmount" data-change-rate="atv" title="Cambiar monto">$0</button>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Buggy Laguna Verde</div>
+        <button class="setting-amount" id="buggyAmount" data-change-rate="buggy" title="Cambiar monto">$0</button>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Ruta Extrema Ausoles</div>
+        <button class="setting-amount" id="ausolesAmount" data-change-rate="ausoles" title="Cambiar monto">$0</button>
+      </div>
+    </section>
+
+    <section class="summary-grid" aria-label="Resumen de comisiones">
+      <div class="summary-card"><span>Pendiente</span><strong id="pendingTotal">$0.00</strong></div>
+      <div class="summary-card"><span>Recibido</span><strong id="receivedTotal">$0.00</strong></div>
+      <div class="summary-card"><span>Test / Dummy</span><strong id="dummyTotal">$0.00</strong></div>
+      <div class="summary-card"><span>Ordenes reales</span><strong id="realCount">0</strong></div>
+    </section>
+
+    <section class="filters" aria-label="Filtros">
+      <input id="search" placeholder="Buscar orden, cliente o tour">
+      <select id="statusFilter">
+        <option value="all">Todos los estados</option>
+        <option value="pending">Pendiente</option>
+        <option value="received">Recibido</option>
+        <option value="dummy">Test / Dummy</option>
+      </select>
+      <select id="tourFilter">
+        <option value="all">Todos los tours</option>
+        <option value="Laguna Verde">Laguna Verde</option>
+        <option value="Ruta Extrema (Ausoles Tour)">Ruta Extrema (Ausoles)</option>
+      </select>
+    </section>
+
+    <section class="orders" id="ordersList" aria-label="Ordenes"></section>
+    <div class="empty" id="emptyState" hidden>No hay ordenes con esos filtros.</div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "ratatouille_commission_register_v2";
+    const COMMISSION_KEY = "ratatouille_commission_rates_v2";
+    const INBOX_KEY = "ratatouille_commission_inbox_v1";
+
+    const defaultCommissions = {
+      atv: 2.50,
+      buggy: 10.00,
+      ausoles: 20.00
+    };
+
+    const dummyOrder = {
+      id: "dummy-rxt-001",
+      orderNumber: "RXT-DUMMY-001",
+      date: new Date().toISOString().slice(0, 10),
+      tour: "Ruta Extrema (Ausoles Tour)",
+      customerName: "Cliente de prueba",
+      atvUnits: 0,
+      buggyUnits: 1,
+      commission: 20,
+      status: "dummy",
+      notes: "Orden falsa para visualizar el panel.",
+      createdAt: new Date().toISOString()
+    };
+
+    let commissions = loadCommissions();
+    let orders = loadOrders();
+
+    if (!orders.length) {
+      orders = [dummyOrder];
+      saveOrders();
+    }
+
+    const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+
+    const els = {
+      atvAmount: document.getElementById("atvAmount"),
+      buggyAmount: document.getElementById("buggyAmount"),
+      ausolesAmount: document.getElementById("ausolesAmount"),
+      ordersList: document.getElementById("ordersList"),
+      emptyState: document.getElementById("emptyState"),
+      pendingTotal: document.getElementById("pendingTotal"),
+      receivedTotal: document.getElementById("receivedTotal"),
+      dummyTotal: document.getElementById("dummyTotal"),
+      realCount: document.getElementById("realCount"),
+      search: document.getElementById("search"),
+      statusFilter: document.getElementById("statusFilter"),
+      tourFilter: document.getElementById("tourFilter")
+    };
+
+    function loadCommissions() {
+      try {
+        return { ...defaultCommissions, ...JSON.parse(localStorage.getItem(COMMISSION_KEY) || "{}") };
+      } catch {
+        return { ...defaultCommissions };
+      }
+    }
+
+    function loadOrders() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCommissions() {
+      localStorage.setItem(COMMISSION_KEY, JSON.stringify(commissions));
+    }
+
+    function saveOrders() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+    }
+
+    function isAusoles(tour) {
+      const value = String(tour || "").toLowerCase();
+      return value.includes("ausoles") || value.includes("extrema");
+    }
+
+    function calculateCommission(order) {
+      if (isAusoles(order.tour)) return Number(commissions.ausoles || 0);
+      return (Number(order.atvUnits || 0) * Number(commissions.atv || 0)) +
+        (Number(order.buggyUnits || 0) * Number(commissions.buggy || 0));
+    }
+
+    function recalculateOrders() {
+      orders = orders.map((order) => ({ ...order, commission: calculateCommission(order) }));
+      saveOrders();
+    }
+
+    function setCommission(type) {
+      const labels = {
+        atv: "comision por cada cuatri",
+        buggy: "comision por cada buggy Laguna",
+        ausoles: "comision fija Ruta Extrema"
+      };
+      const current = Number(commissions[type] || 0).toFixed(2);
+      const value = prompt(`Nuevo monto de ${labels[type]}:`, current);
+      if (value === null) return;
+      const amount = Number(String(value).replace("$", "").replace(",", "."));
+      if (!Number.isFinite(amount) || amount < 0) {
+        alert("Ingresa un monto valido.");
+        return;
+      }
+      commissions[type] = amount;
+      saveCommissions();
+      recalculateOrders();
+      render();
+    }
+
+    function statusLabel(status) {
+      if (status === "received") return "Collectada o cobrada";
+      if (status === "dummy") return "Test o disposicionada";
+      return "Pending o disposicionada";
+    }
+
+    function statusClass(status) {
+      if (status === "received") return "status-received";
+      if (status === "dummy") return "status-dummy";
+      return "status-pending";
+    }
+
+    function vehicleLines(order) {
+      if (isAusoles(order.tour)) {
+        return ["Ruta Extrema Ausoles"];
+      }
+      const lines = [];
+      if (Number(order.buggyUnits)) lines.push(`${order.buggyUnits} buggy La Laguna`);
+      if (Number(order.atvUnits)) lines.push(`${order.atvUnits} cuatri La Laguna`);
+      return lines.length ? lines : ["Sin vehiculos detectados"];
+    }
+
+    function commissionLines(order) {
+      if (isAusoles(order.tour)) {
+        return [{ label: "Ruta Extrema", amount: Number(order.commission || 0) }];
+      }
+      const rows = [];
+      if (Number(order.buggyUnits)) rows.push({
+        label: `${order.buggyUnits} unidad buggy`,
+        amount: Number(order.buggyUnits) * Number(commissions.buggy || 0)
+      });
+      if (Number(order.atvUnits)) rows.push({
+        label: `${order.atvUnits} unidad cuatri`,
+        amount: Number(order.atvUnits) * Number(commissions.atv || 0)
+      });
+      return rows.length ? rows : [{ label: "Sin comision", amount: 0 }];
+    }
+
+    function parseImportedOrder(raw) {
+      let payload = {};
+      let text = raw.trim();
+
+      try {
+        payload = JSON.parse(text);
+        text = [payload.message, payload.tour, payload.orderNumber, payload.customerName].filter(Boolean).join("\n");
+      } catch {
+        payload = {};
+      }
+
+      const orderNumber = payload.orderNumber || (text.match(/RXT[-A-Z0-9]+/i) || [""])[0] || `RXT-IMPORT-${Date.now()}`;
+      const tour = payload.tour || (isAusoles(text) ? "Ruta Extrema (Ausoles Tour)" : "Laguna Verde");
+      const customerName = payload.customerName || payload.name || ((text.match(/Responsable:\s*(.+)/i) || [])[1] || "Orden importada").trim();
+      const atvUnits = Number(payload.atvUnits || 0) || sumUnits(text, /Cuatrimoto|Cuatri/gi);
+      const buggyUnits = Number(payload.buggyUnits || 0) || sumUnits(text, /Buggy/gi);
+
+      const order = {
+        id: makeId(),
+        orderNumber,
+        date: new Date().toISOString().slice(0, 10),
+        tour,
+        customerName,
+        atvUnits,
+        buggyUnits,
+        status: "pending",
+        notes: "Importada desde orden real.",
+        createdAt: new Date().toISOString()
+      };
+      order.commission = calculateCommission(order);
+      return order;
+    }
+
+    function sumUnits(text, nameRegex) {
+      const lines = String(text || "").split(/\r?\n/);
+      return lines.reduce((sum, line) => {
+        nameRegex.lastIndex = 0;
+        if (!nameRegex.test(line)) return sum;
+        nameRegex.lastIndex = 0;
+        const unitsMatch = line.match(/Unidades:\s*(\d+)/i) ||
+          line.match(/Units:\s*(\d+)/i) ||
+          line.match(/^(\d+)\s*x/i) ||
+          line.match(/(\d+)\s+(buggy|cuatri|cuatrimoto)/i);
+        return sum + Number(unitsMatch ? unitsMatch[1] : 1);
+      }, 0);
+    }
+
+    function makeId() {
+      return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    }
+
+    function upsertOrder(order) {
+      const existingIndex = orders.findIndex((item) => item.orderNumber === order.orderNumber);
+      if (existingIndex >= 0) {
+        orders[existingIndex] = { ...orders[existingIndex], ...order, id: orders[existingIndex].id };
+      } else {
+        orders.unshift(order);
+      }
+      saveOrders();
+      render();
+    }
+
+    function consumeIncomingOrders() {
+      let inbox = [];
+      try {
+        inbox = JSON.parse(localStorage.getItem(INBOX_KEY) || "[]");
+      } catch {
+        inbox = [];
+      }
+
+      if (!Array.isArray(inbox) || !inbox.length) return;
+
+      inbox.forEach((payload) => {
+        const raw = typeof payload === "string" ? payload : JSON.stringify(payload);
+        const order = parseImportedOrder(raw);
+        const existingIndex = orders.findIndex((item) => item.orderNumber === order.orderNumber);
+        if (existingIndex >= 0) {
+          orders[existingIndex] = { ...orders[existingIndex], ...order, id: orders[existingIndex].id };
+        } else {
+          orders.unshift(order);
+        }
+      });
+
+      localStorage.removeItem(INBOX_KEY);
+      saveOrders();
+    }
+
+    function setStatus(id, status) {
+      orders = orders.map((order) => order.id === id ? { ...order, status } : order);
+      saveOrders();
+      render();
+    }
+
+    function filteredOrders() {
+      const term = els.search.value.trim().toLowerCase();
+      const status = els.statusFilter.value;
+      const tour = els.tourFilter.value;
+      return orders.filter((order) => {
+        const searchable = [order.orderNumber, order.customerName, order.tour, order.notes].join(" ").toLowerCase();
+        return (!term || searchable.includes(term)) &&
+          (status === "all" || order.status === status) &&
+          (tour === "all" || order.tour === tour);
+      });
+    }
+
+    function renderSettings() {
+      els.atvAmount.textContent = money.format(commissions.atv).replace(".00", "");
+      els.buggyAmount.textContent = money.format(commissions.buggy).replace(".00", "");
+      els.ausolesAmount.textContent = money.format(commissions.ausoles).replace(".00", "");
+    }
+
+    function renderStats() {
+      const totalByStatus = (status) => orders
+        .filter((order) => order.status === status)
+        .reduce((sum, order) => sum + Number(order.commission || 0), 0);
+
+      els.pendingTotal.textContent = money.format(totalByStatus("pending"));
+      els.receivedTotal.textContent = money.format(totalByStatus("received"));
+      els.dummyTotal.textContent = money.format(totalByStatus("dummy"));
+      els.realCount.textContent = orders.filter((order) => order.status !== "dummy").length;
+    }
+
+    function render() {
+      renderSettings();
+      renderStats();
+      const list = filteredOrders();
+      els.emptyState.hidden = list.length > 0;
+      els.ordersList.innerHTML = list.map((order) => {
+        const vehicleHtml = vehicleLines(order).map((line) => `<p>${escapeHtml(line)}</p>`).join("");
+        const commissionHtml = commissionLines(order).map((row) => `
+          <div class="commission-line">
+            <span>${escapeHtml(row.label)}</span>
+            <span>${money.format(row.amount)}</span>
+          </div>
+        `).join("");
+
+        return `
+          <article class="order-card">
+            <div class="order-left">
+              <div class="order-topline">
+                <div class="order-number">New order : ${escapeHtml(order.orderNumber)}</div>
+                <span class="status-pill ${statusClass(order.status)}">${statusLabel(order.status)}</span>
+              </div>
+              <div class="order-info">
+                <h3>Informacion de la orden</h3>
+                ${vehicleHtml}
+                <p>${escapeHtml(order.customerName || "Sin cliente")}</p>
+                ${order.notes ? `<p>${escapeHtml(order.notes)}</p>` : ""}
+              </div>
+              <div class="commission-box">
+                <div class="commission-line"><span>Mis comisiones en la orden</span><span></span></div>
+                ${commissionHtml}
+                <div class="commission-line total"><span>Mis comisiones total: ${money.format(Number(order.commission || 0))}</span></div>
+              </div>
+            </div>
+            <div class="order-actions">
+              <button class="btn gray" data-action="dummy" data-id="${order.id}">Dummy orden</button>
+              <button class="btn green" data-action="received" data-id="${order.id}">Collectada o cobrada</button>
+              <button class="btn red" data-action="pending" data-id="${order.id}">Disposicionar</button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function exportCsv() {
+      const rows = [
+        ["Orden", "Fecha", "Tour", "Cliente", "Cuatrimotos", "Buggies", "Comision", "Estado", "Notas"],
+        ...orders.map((order) => [
+          order.orderNumber, order.date, order.tour, order.customerName, order.atvUnits,
+          order.buggyUnits, Number(order.commission || 0).toFixed(2), statusLabel(order.status), order.notes
+        ])
+      ];
+      const csv = rows.map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `registro-comisiones-${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.querySelectorAll("[data-change-rate]").forEach((button) => {
+      button.addEventListener("click", () => setCommission(button.dataset.changeRate));
+    });
+
+    document.getElementById("addDummy").addEventListener("click", () => {
+      upsertOrder({
+        ...dummyOrder,
+        id: makeId(),
+        orderNumber: `RXT-DUMMY-${String(orders.length + 1).padStart(3, "0")}`,
+        createdAt: new Date().toISOString()
+      });
+    });
+
+    document.getElementById("exportCsv").addEventListener("click", exportCsv);
+
+    document.getElementById("clearData").addEventListener("click", () => {
+      if (!confirm("Quieres borrar todos los registros guardados en esta computadora?")) return;
+      orders = [];
+      saveOrders();
+      render();
+    });
+
+    els.ordersList.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      setStatus(button.dataset.id, button.dataset.action);
+    });
+
+    [els.search, els.statusFilter, els.tourFilter].forEach((control) => {
+      control.addEventListener("input", render);
+      control.addEventListener("change", render);
+    });
+
+    recalculateOrders();
+    consumeIncomingOrders();
+    render();
+  </script>
+</body>
+</html>
