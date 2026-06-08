@@ -68,6 +68,15 @@
       flex-wrap: wrap;
     }
 
+    .sync-status {
+      flex-basis: 100%;
+      margin-top: -2px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: right;
+    }
+
     .btn {
       border: 1px solid rgba(31, 45, 75, .25);
       border-radius: 999px;
@@ -115,6 +124,13 @@
       background: linear-gradient(135deg, #f1f4f8, var(--gray));
       color: #101820;
       box-shadow: 0 10px 22px rgba(31, 45, 75, .10);
+    }
+
+    .btn.sync {
+      background: linear-gradient(135deg, #19c986, #10986a);
+      color: #fff;
+      border-color: rgba(16, 152, 106, .35);
+      box-shadow: 0 12px 24px rgba(16, 152, 106, .20);
     }
 
     .btn.is-current {
@@ -498,8 +514,10 @@
     <h1 class="screen-title">Configuracion de comisiones</h1>
 
     <div class="top-actions">
+      <button class="btn small sync" id="syncOrders">Sincronizar ordenes globales</button>
       <button class="btn small" id="addDummy">Nueva dummy order</button>
       <button class="btn small" id="exportCsv">Exportar CSV</button>
+      <div class="sync-status" id="syncStatus">Las ordenes globales se sincronizan desde el servidor.</div>
     </div>
 
     <section class="settings" aria-label="Configuracion de comisiones">
@@ -549,6 +567,7 @@
     const STORAGE_KEY = "ratatouille_commission_register_v2";
     const COMMISSION_KEY = "ratatouille_commission_rates_v2";
     const INBOX_KEY = "ratatouille_commission_inbox_v1";
+    const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycbwlls5YUQorlyE6H2FohbdUZAFOQAiy2-6KtKOpYdDhwmWwxQ92irvjz075dYoCjF1k/exec";
     const PAGE_SIZE = 10;
 
     const defaultCommissions = {
@@ -595,7 +614,9 @@
       search: document.getElementById("search"),
       statusFilter: document.getElementById("statusFilter"),
       tourFilter: document.getElementById("tourFilter"),
-      pagination: document.getElementById("pagination")
+      pagination: document.getElementById("pagination"),
+      syncOrders: document.getElementById("syncOrders"),
+      syncStatus: document.getElementById("syncStatus")
     };
 
     function loadCommissions() {
@@ -645,6 +666,24 @@
       if (isAusoles(order.tour)) return Number(commissions.ausoles || 0);
       return (Number(order.atvUnits || 0) * Number(commissions.atv || 0)) +
         (Number(order.buggyUnits || 0) * Number(commissions.buggy || 0));
+    }
+
+    function normalizeGlobalOrder(item) {
+      if (!item) return null;
+      if (item.orderNumber && (item.commission !== undefined || item.status)) {
+        return {
+          ...item,
+          id: item.id || makeId(),
+          tour: normalizeTourName(item.tour, item.message || "", item.tourId || ""),
+          customerName: item.customerName || "Cliente",
+          atvUnits: Number(item.atvUnits || 0),
+          buggyUnits: Number(item.buggyUnits || 0),
+          status: item.status || "pending",
+          createdAt: item.createdAt || new Date().toISOString(),
+          date: item.date || String(item.createdAt || new Date().toISOString()).slice(0, 10)
+        };
+      }
+      return parseImportedOrder(JSON.stringify(item));
     }
 
     function recalculateOrders() {
@@ -791,6 +830,103 @@
       }
       saveOrders();
       render();
+    }
+
+    function upsertOrdersBatch(incoming) {
+      let imported = 0;
+      incoming.forEach((item) => {
+        const order = normalizeGlobalOrder(item);
+        if (!order || !order.orderNumber) return;
+        order.commission = calculateCommission(order);
+        const existingIndex = orders.findIndex((current) => current.orderNumber === order.orderNumber);
+        if (existingIndex >= 0) {
+          orders[existingIndex] = {
+            ...orders[existingIndex],
+            ...order,
+            id: orders[existingIndex].id,
+            status: orders[existingIndex].status,
+            closedAs: orders[existingIndex].closedAs,
+            disposedAt: orders[existingIndex].disposedAt
+          };
+        } else {
+          orders.unshift(order);
+        }
+        imported += 1;
+      });
+      if (imported) {
+        currentPage = 1;
+        saveOrders();
+        render();
+      }
+      return imported;
+    }
+
+    function setSyncStatus(message, isError = false) {
+      if (!els.syncStatus) return;
+      els.syncStatus.textContent = message;
+      els.syncStatus.style.color = isError ? "#b42318" : "var(--muted)";
+    }
+
+    function loadJsonp(url, params = {}) {
+      return new Promise((resolve, reject) => {
+        const callbackName = `ratatouilleOrders_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement("script");
+        const requestUrl = new URL(url);
+        Object.entries(params).forEach(([key, value]) => requestUrl.searchParams.set(key, value));
+        requestUrl.searchParams.set("callback", callbackName);
+
+        const cleanup = () => {
+          delete window[callbackName];
+          script.remove();
+        };
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("Tiempo de espera agotado."));
+        }, 15000);
+
+        window[callbackName] = (data) => {
+          clearTimeout(timer);
+          cleanup();
+          resolve(data);
+        };
+        script.onerror = () => {
+          clearTimeout(timer);
+          cleanup();
+          reject(new Error("No se pudo conectar con el servidor de ordenes."));
+        };
+        script.src = requestUrl.toString();
+        document.body.appendChild(script);
+      });
+    }
+
+    async function syncGlobalOrders() {
+      if (!ORDERS_API_URL) return;
+      if (els.syncOrders) {
+        els.syncOrders.disabled = true;
+        els.syncOrders.textContent = "Sincronizando...";
+      }
+      setSyncStatus("Buscando ordenes reales en el servidor...");
+
+      try {
+        const result = await loadJsonp(ORDERS_API_URL, {
+          action: "orders",
+          limit: "300",
+          _: String(Date.now())
+        });
+        if (!result || result.ok === false) {
+          throw new Error(result && result.error ? result.error : "Respuesta invalida del servidor.");
+        }
+        const incoming = Array.isArray(result.orders) ? result.orders : [];
+        const imported = upsertOrdersBatch(incoming);
+        setSyncStatus(imported ? `Sincronizadas ${imported} ordenes globales.` : "No hay ordenes globales nuevas.");
+      } catch (error) {
+        setSyncStatus(`No se pudo sincronizar: ${error.message}`, true);
+      } finally {
+        if (els.syncOrders) {
+          els.syncOrders.disabled = false;
+          els.syncOrders.textContent = "Sincronizar ordenes globales";
+        }
+      }
     }
 
     function consumeIncomingOrders() {
@@ -999,6 +1135,7 @@
     });
 
     document.getElementById("exportCsv").addEventListener("click", exportCsv);
+    els.syncOrders.addEventListener("click", syncGlobalOrders);
 
     els.ordersList.addEventListener("click", (event) => {
       const button = event.target.closest("button[data-action]");
@@ -1063,6 +1200,8 @@
     recalculateOrders();
     consumeIncomingOrders();
     render();
+    syncGlobalOrders();
+    setInterval(syncGlobalOrders, 60000);
   </script>
 </body>
 </html>
